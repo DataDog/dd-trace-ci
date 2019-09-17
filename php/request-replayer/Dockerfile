@@ -1,8 +1,7 @@
 FROM php:7.3
 
 RUN apt-get update \
-  && apt-get install -y git \
-  && apt-get install -y unzip \
+  && apt-get install -y git unzip \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www
