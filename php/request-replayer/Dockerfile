@@ -12,4 +12,8 @@ RUN (curl -q https://raw.githubusercontent.com/composer/getcomposer.org/76a7060c
 COPY src /var/www
 COPY app_start.sh /app_start.sh
 
-CMD composer install --prefer-dist && php -S 0.0.0.0:80 index.php
+EXPOSE 80
+
+RUN composer install
+
+CMD [ "php", "-S", "0.0.0.0:80", "index.php" ]
