@@ -10,7 +10,6 @@ WORKDIR /var/www
 RUN (curl -q https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer | php -- --filename=composer --install-dir=/usr/local/bin);
 
 COPY src /var/www
-COPY app_start.sh /app_start.sh
 
 EXPOSE 80
 
