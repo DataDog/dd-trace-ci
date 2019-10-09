@@ -1,0 +1,19 @@
+FROM circleci/php:7.3-cli-stretch
+
+USER root
+
+COPY install-php7-common-dependencies.sh /tmp/install-php7-common-dependencies.sh
+
+RUN apt-get update \
+    && sh /tmp/install-php7-common-dependencies.sh \
+    && apt-get install -y libmcrypt-dev \
+    && pecl install mcrypt-1.0.3 \
+    && docker-php-ext-enable mcrypt \
+    && docker-php-ext-install pcntl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY dd-test-env.ini /usr/local/etc/php/conf.d/dd-test-env.ini
+
+USER circleci
+
+CMD bash
