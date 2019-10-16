@@ -10,3 +10,39 @@ services:
     image: docker.pkg.github.com/datadog/dd-trace-ci/php-mysql-dev:5.6
     build:
       context: mysql
+
+  dev-5.4:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:5.4
+    build:
+      context: development
+      dockerfile: Dockerfile_54
+
+  dev-5.6:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:5.6
+    build:
+      context: development
+      dockerfile: Dockerfile_56
+
+  dev-7.0:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.0
+    build:
+      context: development
+      dockerfile: Dockerfile_70
+
+  dev-7.1:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.1
+    build:
+      context: development
+      dockerfile: Dockerfile_71
+
+  dev-7.2:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.2
+    build:
+      context: development
+      dockerfile: Dockerfile_72
+
+  dev-7.3:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.3
+    build:
+      context: development
+      dockerfile: Dockerfile_73
