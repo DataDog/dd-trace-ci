@@ -1,0 +1,8 @@
+version: '3.7'
+
+services:
+  ddtracepy-dev:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/ddtracepy-dev:1.0
+    build:
+      context: dev
+      dockerfile: Dockerfile
