@@ -8,11 +8,11 @@ Follow the guide here: https://help.github.com/en/articles/configuring-docker-fo
 Build:
 
 ```sh
-docker-compose build ddtracepy-dev
+docker-compose build python-dev
 ```
 
 Publish:
 
 ```sh
-docker-compose push ddtracepy-dev
+docker-compose push python-dev
 ```
