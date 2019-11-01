@@ -1,0 +1,14 @@
+name: dd-trace-py dev image workflow
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  builddeploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build the dd-trace-py dev Docker image
+      run: docker login docker.pkg.github.com -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} && docker-compose build python-dev && docker-compose push python-dev
