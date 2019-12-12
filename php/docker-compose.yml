@@ -46,3 +46,9 @@ services:
     build:
       context: development
       dockerfile: Dockerfile_73
+
+  dev-7.4:
+    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.4
+    build:
+      context: development
+      dockerfile: Dockerfile_74
