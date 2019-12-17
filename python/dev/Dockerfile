@@ -22,10 +22,11 @@ RUN \
       libmemcached-dev \
       libncurses5-dev \
       libncursesw5-dev \
-      # psycopg2 versions <2.7 do not support pg versions > 10.0 and there are
-      # no plans to backport. https://github.com/psycopg/psycopg2/issues/594
+      # psycopg2 versions <2.7 do not support pg versions >10 and there are
+      # no plans to backport: https://github.com/psycopg/psycopg2/issues/594
       # This restriction can be removed once we drop support for psycopg2<2.7
-      libpq-dev=9.6 \
+      libpq5=9.6.15-0+deb9u1 \
+      libpq-dev=9.6.15-0+deb9u1 \
       libreadline-dev \
       libsasl2-dev \
       libsqlite3-dev \
@@ -36,6 +37,8 @@ RUN \
       # libssl-dev \
       patch \
       python-openssl\
+      python-dev\
+      python3-dev\
       wget \
       zlib1g-dev \
   # Cleaning up apt cache space
@@ -49,7 +52,6 @@ ENV PATH ${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:$PATH
 # Install pyenv
 RUN git clone git://github.com/yyuu/pyenv.git "${PYENV_ROOT}"
 
-
 # Install all required python versions
 RUN \
   pyenv install 2.7.15 \
@@ -58,7 +60,8 @@ RUN \
   && pyenv install 3.6.8 \
   && pyenv install 3.7.2 \
   && pyenv install 3.8.0 \
-  && pyenv global 2.7.15 3.4.9 3.5.6 3.6.8 3.7.2 3.8.0 \
+  # include system here to use for pip and tox
+  && pyenv global system 2.7.15 3.4.9 3.5.6 3.6.8 3.7.2 3.8.0 \
   && pip install --upgrade pip
 
 # Install Python dependencies
