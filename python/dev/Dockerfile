@@ -22,7 +22,10 @@ RUN \
       libmemcached-dev \
       libncurses5-dev \
       libncursesw5-dev \
-      libpq-dev \
+      # psycopg2 versions <2.7 do not support pg versions > 10.0 and there are
+      # no plans to backport. https://github.com/psycopg/psycopg2/issues/594
+      # This restriction can be removed once we drop support for psycopg2<2.7
+      libpq-dev=9.6 \
       libreadline-dev \
       libsasl2-dev \
       libsqlite3-dev \
@@ -64,3 +67,7 @@ RUN \
 RUN pip install "tox>=3.7,<4.0"
 
 CMD ["/bin/bash"]
+
+# To install MySQL-python need to add this hack
+# https://github.com/DefectDojo/django-DefectDojo/issues/407#issuecomment-415862064
+RUN sed '/st_mysql_options options;/a unsigned int reconnect;' /usr/include/mysql/mysql.h -i.bkp
