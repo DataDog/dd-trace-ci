@@ -1,4 +1,4 @@
-Build and push specific image:
+Build and push a specific image:
 
 ```
 docker-compose build <image_name> && docker-compose push <image_name>
