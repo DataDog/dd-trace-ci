@@ -1,41 +1,11 @@
-### Requests replayer
-
-Build:
+Build and push specific image:
 
 ```
-docker-compose build request-replayer
+docker-compose build <image_name> && docker-compose push <image_name>
 ```
 
-Publish:
+Build and push all images:
 
 ```
-docker-compose push request-replayer
-```
-
-### Mysql
-
-Build:
-
-```
-docker-compose build mysql-dev
-```
-
-Publish:
-
-```
-docker-compose push mysql-dev
-```
-
-### Nginx and Apache2
-
-Build:
-
-```
-docker-compose build nginx-apache2
-```
-
-Publish:
-
-```
-docker-compose push nginx-apache2
+docker-compose build && docker-compose push
 ```
