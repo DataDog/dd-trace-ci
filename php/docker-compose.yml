@@ -51,3 +51,27 @@ services:
     build:
       context: development
       dockerfile: Dockerfile_73
+
+  framework-flow:
+    image: datadog/dd-trace-ci:php-framework-flow
+    build:
+      context: frameworks
+      target: flow
+
+  framework-laravel:
+    image: datadog/dd-trace-ci:php-framework-laravel
+    build:
+      context: frameworks
+      target: laravel
+
+  framework-symfony:
+    image: datadog/dd-trace-ci:php-framework-symfony
+    build:
+      context: frameworks
+      target: symfony
+
+  framework-wordpress:
+    image: datadog/dd-trace-ci:php-framework-wordpress
+    build:
+      context: frameworks
+      target: wordpress
