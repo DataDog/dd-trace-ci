@@ -1,0 +1,77 @@
+root /var/www/html;
+index index.php index.html;
+
+access_log /dev/stdout;
+error_log /dev/stderr;
+
+server {
+    listen 8056;
+    server_name _;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php5.6-fpm.sock;
+    }
+}
+
+server {
+    listen 8070;
+    server_name _;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+    }
+}
+
+server {
+    listen 8071;
+    server_name _;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.1-fpm.sock;
+    }
+}
+
+server {
+    listen 8072;
+    server_name _;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    }
+}
+
+server {
+    listen 8073;
+    server_name _;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+    }
+}
+
+#server {
+#    listen 8074;
+#    server_name _;
+#    location / {
+#        try_files $uri $uri/ =404;
+#    }
+#    location ~ \.php$ {
+#        include snippets/fastcgi-php.conf;
+#        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+#    }
+#}

@@ -2,47 +2,52 @@ version: '3.7'
 
 services:
   request-replayer:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-request-replayer
+    image: datadog/dd-trace-ci:php-request-replayer
     build:
       context: request-replayer
 
   mysql-dev:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-mysql-dev:5.6
+    image: datadog/dd-trace-ci:php-mysql-dev-5.6
     build:
       context: mysql
 
+  nginx-apache2:
+    image: datadog/dd-trace-ci:php-nginx-apache2
+    build:
+      context: nginx-apache2
+
   dev-5.4:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:5.4
+    image: datadog/dd-trace-ci:php-dev-5.4
     build:
       context: development
       dockerfile: Dockerfile_54
 
   dev-5.6:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:5.6
+    image: datadog/dd-trace-ci:php-dev-5.6
     build:
       context: development
       dockerfile: Dockerfile_56
 
   dev-7.0:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.0
+    image: datadog/dd-trace-ci:php-dev-7.0
     build:
       context: development
       dockerfile: Dockerfile_70
 
   dev-7.1:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.1
+    image: datadog/dd-trace-ci:php-dev-7.1
     build:
       context: development
       dockerfile: Dockerfile_71
 
   dev-7.2:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.2
+    image: datadog/dd-trace-ci:php-dev-7.2
     build:
       context: development
       dockerfile: Dockerfile_72
 
   dev-7.3:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.3
+    image: datadog/dd-trace-ci:php-dev-7.3
     build:
       context: development
       dockerfile: Dockerfile_73
@@ -52,3 +57,27 @@ services:
     build:
       context: development
       dockerfile: Dockerfile_74
+
+  framework-flow:
+    image: datadog/dd-trace-ci:php-framework-flow
+    build:
+      context: frameworks
+      target: flow
+
+  framework-laravel:
+    image: datadog/dd-trace-ci:php-framework-laravel
+    build:
+      context: frameworks
+      target: laravel
+
+  framework-symfony:
+    image: datadog/dd-trace-ci:php-framework-symfony
+    build:
+      context: frameworks
+      target: symfony
+
+  framework-wordpress:
+    image: datadog/dd-trace-ci:php-framework-wordpress
+    build:
+      context: frameworks
+      target: wordpress
