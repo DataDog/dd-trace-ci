@@ -178,8 +178,8 @@ ENV PHP_VERSION 7.3.6
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_4
-ENV PHP_VERSION 7.4.0beta4
-ENV PHP_URL="https://downloads.php.net/~derick/php-${PHP_VERSION}.tar.gz"
+ENV PHP_VERSION 7.4.1
+ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM php_source_${VERSION} as php_source
 
