@@ -75,6 +75,13 @@ services:
         php_config_args: --enable-debug
         alpine_version: 3.11
 
+  7.4-debug-buster:
+    image: datadog/dd-trace-ci:php-7.4-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_4, VARIANT: debug }
+
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
     build:
