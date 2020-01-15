@@ -64,6 +64,11 @@ services:
       context: centos
       args: { CENTOS_VERSION: 7, PHP_VERSION: 74 }
 
+  7.4-debug-alpine-3.11:
+    image: datadog/dd-trace-ci:php-7.4-debug-alpine-3.11
+    build:
+      context: alpine
+
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
     build:
