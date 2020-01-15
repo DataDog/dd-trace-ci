@@ -53,10 +53,16 @@ services:
       dockerfile: Dockerfile_73
 
   dev-7.4:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.4
+    image: datadog/dd-trace-ci:php-dev-7.4
     build:
       context: development
       dockerfile: Dockerfile_74
+
+  7.4-centos-7:
+    image: datadog/dd-trace-ci:php-7.4-centos-7
+    build:
+      context: centos
+      args: { CENTOS_VERSION: 7, PHP_VERSION: 74 }
 
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
