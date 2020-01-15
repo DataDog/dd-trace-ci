@@ -68,6 +68,12 @@ services:
     image: datadog/dd-trace-ci:php-7.4-debug-alpine-3.11
     build:
       context: alpine
+      args:
+        php_version: 7.4.1
+        php_url: https://www.php.net/get/php-7.4.1.tar.xz/from/this/mirror
+        php_sha: 561bb866bdd509094be00f4ece7c3543ec971c4d878645ee81437e291cffc762
+        php_config_args: --enable-debug
+        alpine_version: 3.11
 
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
