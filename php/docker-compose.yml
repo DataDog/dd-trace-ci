@@ -53,10 +53,34 @@ services:
       dockerfile: Dockerfile_73
 
   dev-7.4:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/php-dev:7.4
+    image: datadog/dd-trace-ci:php-dev-7.4
     build:
       context: development
       dockerfile: Dockerfile_74
+
+  7.4-centos-7:
+    image: datadog/dd-trace-ci:php-7.4-centos-7
+    build:
+      context: centos
+      args: { CENTOS_VERSION: 7, PHP_VERSION: 74 }
+
+  7.4-debug-alpine-3.11:
+    image: datadog/dd-trace-ci:php-7.4-debug-alpine-3.11
+    build:
+      context: alpine
+      args:
+        php_version: 7.4.1
+        php_url: https://www.php.net/get/php-7.4.1.tar.xz/from/this/mirror
+        php_sha: 561bb866bdd509094be00f4ece7c3543ec971c4d878645ee81437e291cffc762
+        php_config_args: --enable-debug
+        alpine_version: 3.11
+
+  7.4-debug-buster:
+    image: datadog/dd-trace-ci:php-7.4-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_4, VARIANT: debug }
 
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
