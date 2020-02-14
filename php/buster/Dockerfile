@@ -166,19 +166,19 @@ ENV PHP_VERSION 7.0.33
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_1
-ENV PHP_VERSION 7.1.30
+ENV PHP_VERSION 7.1.33
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_2
-ENV PHP_VERSION 7.2.20
+ENV PHP_VERSION 7.2.27
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_3
-ENV PHP_VERSION 7.3.6
+ENV PHP_VERSION 7.3.14
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_4
-ENV PHP_VERSION 7.4.1
+ENV PHP_VERSION 7.4.2
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM php_source_${VERSION} as php_source
@@ -224,7 +224,7 @@ COPY docker-php-ext-*  /usr/local/bin/
 ARG PHP_CONFIG_ARGS=""
 ARG BASE_CONFIG_ARGS="--with-apxs2"
 ENV PHP_CFLAGS="-fpic -fpie"
-ENV PHP_LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie"
+ENV PHP_LDFLAGS="-Wl,-O0 -Wl,--hash-style=both -pie"
 ENV PHP_LIBS=""
 
 # Version specific configure args
@@ -272,7 +272,7 @@ ENV PHP_EXTRA_CONFIGURE_ARGS ${BASE_CONFIG_ARGS} --with-password-argon2 --with-s
 # Variant specific configure args
 
 FROM config-$VERSION as config-variant-vanilla
-ENV PHP_CFLAGS "-fstack-protector-strong -fpic -fpie -O2"
+ENV PHP_CFLAGS "-fstack-protector-strong -fpic -fpie -O0"
 
 FROM config-$VERSION as config-variant-debug
 ENV PHP_EXTRA_CONFIGURE_ARGS --enable-debug ${PHP_EXTRA_CONFIGURE_ARGS}
@@ -376,29 +376,12 @@ RUN set -eux; \
         ${PHP_EXTRA_CONFIGURE_ARGS:-} \
     ; \
     make -j "$(nproc)"; \
-    find -type f -name '*.a' -delete; \
     make install; \
-    find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
-    make clean; \
     \
 # https://github.com/docker-library/php/issues/692 (copy default example "php.ini" files somewhere easily discoverable)
     cp -v php.ini-* "$PHP_INI_DIR/"; \
     \
     cd /; \
-    docker-php-source delete; \
-    \
-# reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
-    apt-mark auto '.*' > /dev/null; \
-    [ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
-    find /usr/local -type f -executable -exec ldd '{}' ';' \
-        | awk '/=>/ { print $(NF-1) }' \
-        | sort -u \
-        | xargs -r dpkg-query --search \
-        | cut -d: -f1 \
-        | sort -u \
-        | xargs -r apt-mark manual; \
-    \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     \
 # update pecl channel definitions https://github.com/docker-library/php/issues/443
     pecl update-channels; \
@@ -419,7 +402,6 @@ RUN set -xe; \
     sudo apt-get -y install $EXT_DEPS; \
     phpize; ./configure --disable-memcached-sasl; \
     make install; \
-    sudo apt-get remove $EXT_DEP; \
     cd ..; rm -rf memcached; \
     yes 'no' | pecl install mongo; \
     docker-php-ext-enable memcached; \
@@ -436,7 +418,6 @@ RUN set -xe; \
     sudo apt-get -y install $EXT_DEPS; \
     yes 'no' | pecl install memcached; \
     docker-php-ext-enable memcached; \
-    sudo apt-get remove $EXT_DEP; \
     pecl install redis; \
     docker-php-ext-enable redis; \
     docker-php-ext-enable sodium 2> /dev/null || true

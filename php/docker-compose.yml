@@ -75,12 +75,61 @@ services:
         php_config_args: --enable-debug
         alpine_version: 3.11
 
+  5.4-debug-buster:
+    image: datadog/dd-trace-ci:php-5.4-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v5_4, VARIANT: debug }
+
+  5.6-debug-buster:
+    image: datadog/dd-trace-ci:php-5.6-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v5_6, VARIANT: debug }
+
+  7.0-debug-buster:
+    image: datadog/dd-trace-ci:php-7.0-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_0, VARIANT: debug }
+
+  7.1-debug-buster:
+    image: datadog/dd-trace-ci:php-7.1-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_1, VARIANT: debug }
+
+  7.2-debug-buster:
+    image: datadog/dd-trace-ci:php-7.2-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_2, VARIANT: debug }
+
+  7.3-debug-buster:
+    image: datadog/dd-trace-ci:php-7.3-debug-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_3, VARIANT: debug }
+
   7.4-debug-buster:
     image: datadog/dd-trace-ci:php-7.4-debug-buster
     build:
       context: buster
       target: final
       args: { VERSION: v7_4, VARIANT: debug }
+
+  7.4-debug-asan-buster:
+    image: datadog/dd-trace-ci:php-7.4-debug-asan-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_4, VARIANT: debug-asan }
 
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
