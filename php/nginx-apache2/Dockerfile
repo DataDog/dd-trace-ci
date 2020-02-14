@@ -33,4 +33,4 @@ RUN mkdir -p /src/ddtrace && cd $_ \
     && dpkg-deb -R datadog-php-tracer_0.35.0_amd64.deb . \
     && cp -a ./opt/. /opt/
 
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/bin/supervisord", "--nodaemon"]
