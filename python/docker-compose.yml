@@ -1,8 +1,0 @@
-version: '3.7'
-
-services:
-  python-dev:
-    image: docker.pkg.github.com/datadog/dd-trace-ci/python-dev:latest
-    build:
-      context: dev
-      dockerfile: Dockerfile
