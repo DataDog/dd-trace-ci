@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-dir=/usr/src/php
+dir=/usr/local/src/php
 
 usage() {
     echo "usage: $0 COMMAND"
@@ -18,9 +18,9 @@ case "$1" in
     extract)
         mkdir -p "$dir"
         if [ ! -f "$dir/.docker-extracted" ]; then
-            tar xf /usr/src/php.tar.gz -C "$dir" --strip-components=1
+            tar xf /usr/local/src/php.tar.gz -C "$dir" --strip-components=1
             chown circleci:circleci -R "$dir"
-            chown circleci:circleci "/usr/src"
+            chown circleci:circleci "/usr/local/src"
             touch "$dir/.docker-extracted"
         fi
         ;;

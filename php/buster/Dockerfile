@@ -1,6 +1,6 @@
 ARG VERSION=v7_3
 ARG VARIANT=vanilla
-FROM debian:buster-slim AS basic_system
+FROM debian:buster AS basic_system
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV RUNTIME_DEPS \
@@ -10,7 +10,11 @@ ENV RUNTIME_DEPS \
     vim \
     valgrind \
     gdb \
-    less
+    less \
+    debian-goodies \
+    clang-format \
+    zip \
+    unzip
 
 ENV DDTRACE_EXTENSION_DEPS \
     libcurl4-openssl-dev
@@ -35,6 +39,10 @@ ENV APACHE_ENVVARS $APACHE_CONFDIR/envvars
 RUN set -eux; \
     echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90circleci; \
     echo 'DPkg::Options "--force-confnew";' >> /etc/apt/apt.conf.d/90circleci; \
+    \
+# Ensure debug symbols are available
+    echo "deb http://deb.debian.org/debian-debug/ buster-debug main" | \
+        tee -a /etc/apt/sources.list; \
     \
 # prevent Debian's PHP packages from being installed
 # https://github.com/docker-library/php/pull/542
@@ -142,7 +150,14 @@ RUN set -eux; \
     groupadd --gid 3434 circleci; \
     useradd --uid 3434 --gid circleci --shell /bin/bash --create-home circleci; \
     echo 'circleci ALL=NOPASSWD: ALL' >> /etc/sudoers.d/50-circleci; \
-    echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >> /etc/sudoers.d/env_keep;
+    echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >> /etc/sudoers.d/env_keep; \
+    \
+# Pretty prompt
+    echo "PS1='\[\033[01;32m\]\u\[\033[00m\]\[\033[00;35m\](buster)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '" | \
+        tee -a /home/circleci/.bashrc; \
+# Handy aliases
+    echo "alias ll='ls -al'" | \
+        tee -a /home/circleci/.bash_aliases;
 ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D
 
 FROM basic_system as php_source_v5_3
@@ -170,15 +185,15 @@ ENV PHP_VERSION 7.1.33
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_2
-ENV PHP_VERSION 7.2.27
+ENV PHP_VERSION 7.2.30
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_3
-ENV PHP_VERSION 7.3.14
+ENV PHP_VERSION 7.3.17
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM basic_system as php_source_v7_4
-ENV PHP_VERSION 7.4.2
+ENV PHP_VERSION 7.4.5
 ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
 
 FROM php_source_${VERSION} as php_source
@@ -192,8 +207,8 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends gnupg dirmngr; \
     rm -rf /var/lib/apt/lists/*; \
     \
-    mkdir -p /usr/src; \
-    cd /usr/src; \
+    mkdir -p /usr/local/src; \
+    cd /usr/local/src; \
     \
     curl -fsSL -o php.tar.gz "$PHP_URL"; \
     \
@@ -310,6 +325,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         libedit-dev \
+        libmcrypt-dev \
         libsodium-dev \
         libsqlite3-dev \
         libssl-dev \
@@ -330,7 +346,7 @@ RUN set -eux; \
     \
     docker-php-source extract; \
     \
-    cd /usr/src/php; \
+    cd /usr/local/src/php; \
     gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
     debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)"; \
 # https://bugs.php.net/bug.php?id=74125
@@ -341,9 +357,6 @@ RUN set -eux; \
         --build="$gnuArch" \
         --with-config-file-path="$PHP_INI_DIR" \
         --with-config-file-scan-dir="$PHP_INI_DIR/conf.d" \
-        \
-# make sure invalid --configure-flags are fatal errors intead of just warnings
-        --enable-option-checking=fatal \
         \
 # https://github.com/docker-library/php/issues/439
         --with-mhash \
@@ -357,8 +370,10 @@ RUN set -eux; \
         \
         --with-curl \
         --with-libedit \
+        --with-mcrypt \
         --with-openssl \
         --with-zlib \
+        --enable-opcache \
         --enable-fpm \
         --enable-cgi \
         --with-fpm-user=www-data \
@@ -388,6 +403,12 @@ RUN set -eux; \
     rm -rf /tmp/pear ~/.pearrc; \
 # smoke test
     php --version
+
+# Install nginx that can be run as non-root for tests
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y nginx; \
+    chown -R circleci:circleci /var/log/nginx/ /var/lib/nginx/
 
 FROM php-build AS final-v5_base
 RUN set -xe; \
@@ -420,7 +441,14 @@ RUN set -xe; \
     docker-php-ext-enable memcached; \
     pecl install redis; \
     docker-php-ext-enable redis; \
+    pecl install ast; \
+    docker-php-ext-enable ast; \
     docker-php-ext-enable sodium 2> /dev/null || true
+
+RUN set -xe; \
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0.*} ] || [ -z ${PHP_VERSION##7.1.*} ] && exit 0 ;\
+    yes '' | pecl install mcrypt; \
+    docker-php-ext-enable mcrypt
 
 FROM final-v5_base AS v5_3-final
 FROM final-v5_base AS v5_4-final
