@@ -161,43 +161,44 @@ RUN set -eux; \
 ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D
 
 FROM basic_system as php_source_v5_3
-ENV PHP_VERSION 5.3.38
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 5.3
+ENV PHP_VERSION_PATCH 5.3.38
 
 FROM basic_system as php_source_v5_4
-ENV PHP_VERSION 5.4.45
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 5.4
+ENV PHP_VERSION_PATCH 5.4.45
 
 FROM basic_system as php_source_v5_5
-ENV PHP_VERSION 5.5.38
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 5.5
+ENV PHP_VERSION_PATCH 5.5.38
 
 FROM basic_system as php_source_v5_6
-ENV PHP_VERSION 5.6.40
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 5.6
+ENV PHP_VERSION_PATCH 5.6.40
 
 FROM basic_system as php_source_v7_0
-ENV PHP_VERSION 7.0.33
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 7.0
+ENV PHP_VERSION_PATCH 7.0.33
 
 FROM basic_system as php_source_v7_1
-ENV PHP_VERSION 7.1.33
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 7.1
+ENV PHP_VERSION_PATCH 7.1.33
 
 FROM basic_system as php_source_v7_2
-ENV PHP_VERSION 7.2.30
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 7.2
+ENV PHP_VERSION_PATCH 7.2.30
 
 FROM basic_system as php_source_v7_3
-ENV PHP_VERSION 7.3.17
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 7.3
+ENV PHP_VERSION_PATCH 7.3.17
 
 FROM basic_system as php_source_v7_4
-ENV PHP_VERSION 7.4.5
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.gz/from/this/mirror"
+ENV PHP_VERSION 7.4
+ENV PHP_VERSION_PATCH 7.4.5
 
 FROM php_source_${VERSION} as php_source
 
+ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION_PATCH}.tar.gz/from/this/mirror"
 ENV PHP_ASC_URL="" PHP_SHA256="" PHP_MD5=""
 
 RUN set -eux; \
@@ -410,6 +411,10 @@ RUN set -eux; \
     apt-get install -y nginx; \
     chown -R circleci:circleci /var/log/nginx/ /var/lib/nginx/
 
+# Core Dumps
+RUN set -eux; \
+    ulimit -c unlimited
+
 FROM php-build AS final-v5_base
 RUN set -xe; \
     [ -z ${PHP_VERSION##7.*} ] && exit 0 ;\
@@ -427,6 +432,34 @@ RUN set -xe; \
     yes 'no' | pecl install mongo; \
     docker-php-ext-enable memcached; \
     docker-php-ext-enable mongo
+
+# Xdebug: PHP 5.6
+RUN set -xe; \
+    [ $PHP_VERSION != "5.6" ] && exit 0; \
+    pecl install xdebug-2.5.5; \
+    cd $(php-config --extension-dir); \
+    mv xdebug.so xdebug-2.5.5.so
+
+# Xdebug: PHP 5.4
+RUN set -xe; \
+    [ $PHP_VERSION != "5.4" ] && exit 0; \
+    pecl install xdebug-2.4.1; \
+    cd $(php-config --extension-dir); \
+    mv xdebug.so xdebug-2.4.1.so
+
+# Configure PHP-FPM (PHP 5)
+RUN set -eux; \
+    [ -z ${PHP_VERSION##7.*} ] && exit 0; \
+    cp /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf; \
+    sed -e 's/;error_log = .*/error_log = \/proc\/self\/fd\/2/g' \
+        -e 's/;rlimit_core = .*/rlimit_core = 0/g' \
+        -e 's/listen = .*/listen = 9000/g' \
+        -e 's/;clear_env = .*/clear_env = no/g' \
+        -e 's/;php_admin_value\[error_log\].*/php_admin_value[error_log] = \/proc\/self\/fd\/2/g' \
+        -e 's/;catch_workers_output = .*/catch_workers_output = yes/g' \
+        -e 's/pm = .*/pm = static/g' \
+        -e 's/pm.max_children = .*/pm.max_children = 1/g' \
+        -i /usr/local/etc/php-fpm.conf
 
 FROM php-build AS final-v7_base
 
@@ -446,9 +479,50 @@ RUN set -xe; \
     docker-php-ext-enable sodium 2> /dev/null || true
 
 RUN set -xe; \
-    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0.*} ] || [ -z ${PHP_VERSION##7.1.*} ] && exit 0 ;\
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] || [ -z ${PHP_VERSION##7.1} ] && exit 0 ;\
     yes '' | pecl install mcrypt; \
     docker-php-ext-enable mcrypt
+
+# Xdebug: PHP 7.1 - 7.4 (two versions for testing)
+RUN set -xe; \
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] && exit 0; \
+    pecl install xdebug-2.9.5; \
+    cd $(php-config --extension-dir); \
+    mv xdebug.so xdebug-2.9.5.so; \
+    \
+    mkdir -p /usr/local/src/xdebug/2.9.2; \
+    cd /usr/local/src/xdebug; \
+    curl -L -o xdebug-2.9.2.tar.gz https://github.com/xdebug/xdebug/archive/2.9.2.tar.gz; \
+    tar xf xdebug-2.9.2.tar.gz -C "2.9.2" --strip-components=1; \
+    cd 2.9.2; \
+    phpize; \
+    ./configure; \
+    make; \
+    cp ./modules/xdebug.so $(php-config --extension-dir)/xdebug-2.9.2.so
+
+# Xdebug: PHP 7.0
+RUN set -xe; \
+    [ $PHP_VERSION != "7.0" ] && exit 0; \
+    pecl install xdebug-2.7.2; \
+    cd $(php-config --extension-dir); \
+    mv xdebug.so xdebug-2.7.2.so
+
+# Configure PHP-FPM (PHP 7)
+RUN set -eux; \
+    [ -z ${PHP_VERSION##5.*} ] && exit 0; \
+    cp /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf; \
+    sed -e 's/include=NONE\/etc\/php-fpm.d\/\*.conf/include=etc\/php-fpm.d\/*.conf/g' \
+        -e 's/;error_log = .*/error_log = \/proc\/self\/fd\/2/g' \
+        -e 's/;rlimit_core = .*/rlimit_core = 0/g' \
+        -i /usr/local/etc/php-fpm.conf; \
+    cp /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf; \
+    sed -e 's/listen = .*/listen = 9000/g' \
+        -e 's/;clear_env = .*/clear_env = no/g' \
+        -e 's/;php_admin_value\[error_log\].*/php_admin_value[error_log] = \/proc\/self\/fd\/2/g' \
+        -e 's/;catch_workers_output = .*/catch_workers_output = yes/g' \
+        -e 's/pm = .*/pm = static/g' \
+        -e 's/pm.max_children = .*/pm.max_children = 1/g' \
+        -i /usr/local/etc/php-fpm.d/www.conf
 
 FROM final-v5_base AS v5_3-final
 FROM final-v5_base AS v5_4-final
@@ -466,4 +540,11 @@ ENV LSAN_OPTIONS ""
 WORKDIR /home/circleci
 USER circleci
 
+# Override stop signal to stop process gracefully
+# https://github.com/php/php-src/blob/17baa87faddc2550def3ae7314236826bc1b1398/sapi/fpm/php-fpm.8.in#L163
+STOPSIGNAL SIGQUIT
+
+EXPOSE 9000
 EXPOSE 80
+
+CMD ["php-fpm", "-F"]
