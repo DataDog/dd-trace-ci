@@ -29,6 +29,7 @@ ENV PHPIZE_DEPS \
         make \
         pkg-config \
         re2c \
+        bison \
         $DDTRACE_EXTENSION_DEPS
 
 ENV PHP_INI_DIR /usr/local/etc/php
@@ -196,9 +197,13 @@ FROM basic_system as php_source_v7_4
 ENV PHP_VERSION 7.4
 ENV PHP_VERSION_PATCH 7.4.5
 
+FROM basic_system as php_source_v8_0
+ENV PHP_VERSION 8.0
+ENV PHP_VERSION_PATCH 8.0.0
+
 FROM php_source_${VERSION} as php_source
 
-ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION_PATCH}.tar.gz/from/this/mirror"
+ARG PHP_URL="https://www.php.net/get/php-${PHP_VERSION_PATCH}.tar.gz/from/this/mirror"
 ENV PHP_ASC_URL="" PHP_SHA256="" PHP_MD5=""
 
 RUN set -eux; \
@@ -267,14 +272,18 @@ RUN set -xe; \
 FROM php_source as config-v7_base
 ENV PHP_EXTRA_CONFIGURE_ARGS ${BASE_CONFIG_ARGS} ${PHP_CONFIG_ARGS}
 
+FROM php_source as config-v8_base
+ENV PHP_EXTRA_CONFIGURE_ARGS ${BASE_CONFIG_ARGS} ${PHP_CONFIG_ARGS}
+
 FROM config-v5_base as config-v5_3
 FROM config-v5_base as config-v5_4
 FROM config-v5_base as config-v5_5
 FROM config-v5_base as config-v5_6
 
-
 FROM config-v7_base as config-v7_0
 FROM config-v7_base as config-v7_1
+
+FROM config-v8_base as config-v8_0
 
 FROM php_source as config-v7_2
 ENV PHP_EXTRA_CONFIGURE_ARGS ${BASE_CONFIG_ARGS} --with-password-argon2 --with-sodium=shared ${PHP_CONFIG_ARGS}
@@ -354,6 +363,7 @@ RUN set -eux; \
     if [ ! -d /usr/include/curl ]; then \
         ln -sT "/usr/include/$debMultiarch/curl" /usr/local/include/curl; \
     fi; \
+    ./buildconf --force; \
     ./configure LIBS="$PHP_LIBS" \
         --build="$gnuArch" \
         --with-config-file-path="$PHP_INI_DIR" \
@@ -417,7 +427,7 @@ RUN set -eux; \
 
 FROM php-build AS final-v5_base
 RUN set -xe; \
-    [ -z ${PHP_VERSION##7.*} ] && exit 0 ;\
+    [ -z ${PHP_VERSION##7.*} ] || [ -z ${PHP_VERSION##8.*} ] && exit 0 ;\
     (curl -q https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer | php -- --filename=composer --install-dir=/usr/local/bin); \
     mkdir -p /tmp/memcached; \
     cd /tmp/memcached;\
@@ -449,7 +459,7 @@ RUN set -xe; \
 
 # Configure PHP-FPM (PHP 5)
 RUN set -eux; \
-    [ -z ${PHP_VERSION##7.*} ] && exit 0; \
+    [ -z ${PHP_VERSION##7.*} ] || [ -z ${PHP_VERSION##8.*} ] && exit 0; \
     cp /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf; \
     sed -e 's/;error_log = .*/error_log = \/proc\/self\/fd\/2/g' \
         -e 's/;rlimit_core = .*/rlimit_core = 0/g' \
@@ -464,7 +474,7 @@ RUN set -eux; \
 FROM php-build AS final-v7_base
 
 RUN set -xe; \
-    [ -z ${PHP_VERSION##5.*} ] && exit 0 ;\
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##8.*} ] && exit 0 ;\
     (curl -q https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer | php -- --filename=composer --install-dir=/usr/local/bin); \
     yes '' | pecl install apcu; \
     export EXT_DEPS="zlib1g-dev libmemcached-dev";\
@@ -479,13 +489,13 @@ RUN set -xe; \
     docker-php-ext-enable sodium 2> /dev/null || true
 
 RUN set -xe; \
-    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] || [ -z ${PHP_VERSION##7.1} ] && exit 0 ;\
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] || [ -z ${PHP_VERSION##7.1} ] || [ -z ${PHP_VERSION##8.*} ] && exit 0 ;\
     yes '' | pecl install mcrypt; \
     docker-php-ext-enable mcrypt
 
 # Xdebug: PHP 7.1 - 7.4 (two versions for testing)
 RUN set -xe; \
-    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] && exit 0; \
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] || [ -z ${PHP_VERSION##8.*} ] && exit 0; \
     pecl install xdebug-2.9.5; \
     cd $(php-config --extension-dir); \
     mv xdebug.so xdebug-2.9.5.so; \
@@ -509,7 +519,7 @@ RUN set -xe; \
 
 # Configure PHP-FPM (PHP 7)
 RUN set -eux; \
-    [ -z ${PHP_VERSION##5.*} ] && exit 0; \
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##8.*} ] && exit 0; \
     cp /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf; \
     sed -e 's/include=NONE\/etc\/php-fpm.d\/\*.conf/include=etc\/php-fpm.d\/*.conf/g' \
         -e 's/;error_log = .*/error_log = \/proc\/self\/fd\/2/g' \
@@ -524,6 +534,27 @@ RUN set -eux; \
         -e 's/pm.max_children = .*/pm.max_children = 1/g' \
         -i /usr/local/etc/php-fpm.d/www.conf
 
+FROM php-build AS final-v8_base
+
+# Configure PHP-FPM (PHP 8)
+RUN set -eux; \
+    [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.*} ] && exit 0; \
+    cp /usr/local/etc/php-fpm.conf.default /usr/local/etc/php-fpm.conf; \
+    sed -e 's/include=NONE\/etc\/php-fpm.d\/\*.conf/include=etc\/php-fpm.d\/*.conf/g' \
+        -e 's/;error_log = .*/error_log = \/proc\/self\/fd\/2/g' \
+        -e 's/;rlimit_core = .*/rlimit_core = 0/g' \
+        -i /usr/local/etc/php-fpm.conf; \
+    cp /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf; \
+    sed -e 's/listen = .*/listen = 9000/g' \
+        -e 's/;clear_env = .*/clear_env = no/g' \
+        -e 's/;php_admin_value\[error_log\].*/php_admin_value[error_log] = \/proc\/self\/fd\/2/g' \
+        -e 's/;catch_workers_output = .*/catch_workers_output = yes/g' \
+        -e 's/pm = .*/pm = static/g' \
+        -e 's/pm.max_children = .*/pm.max_children = 1/g' \
+        -i /usr/local/etc/php-fpm.d/www.conf
+
+# TODO Add PHP 8 extensions
+
 FROM final-v5_base AS v5_3-final
 FROM final-v5_base AS v5_4-final
 FROM final-v5_base AS v5_5-final
@@ -533,6 +564,7 @@ FROM final-v7_base AS v7_1-final
 FROM final-v7_base AS v7_2-final
 FROM final-v7_base AS v7_3-final
 FROM final-v7_base AS v7_4-final
+FROM final-v8_base AS v8_0-final
 
 FROM ${VERSION}-final AS final
 

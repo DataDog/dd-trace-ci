@@ -131,6 +131,16 @@ services:
       target: final
       args: { VERSION: v7_4, VARIANT: debug-asan }
 
+  8.0-debug-buster:
+    image: datadog/dd-trace-ci:php-8.0-debug-buster
+    build:
+      context: buster
+      target: final
+      args:
+        VERSION: v8_0
+        VARIANT: debug
+        PHP_URL: https://github.com/SammyK/php-src/archive/php-8-instrumentation-hooks.tar.gz
+
   framework-flow:
     image: datadog/dd-trace-ci:php-framework-flow
     build:
