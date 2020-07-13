@@ -58,6 +58,12 @@ services:
       context: development
       dockerfile: Dockerfile_74
 
+  7.3-centos-7:
+    image: datadog/dd-trace-ci:php-7.3-centos-7
+    build:
+      context: centos
+      args: { CENTOS_VERSION: 7, PHP_VERSION: 73 }
+
   7.4-centos-7:
     image: datadog/dd-trace-ci:php-7.4-centos-7
     build:
