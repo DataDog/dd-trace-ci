@@ -42,6 +42,10 @@ switch ($_SERVER['REQUEST_URI']) {
         break;
     default:
         $headers = getallheaders();
+        if (isset($headers['X-Datadog-Diagnostic-Check'])) {
+            logRequest('Received diagnostic check; ignoring');
+            break;
+        }
 
         $raw = file_get_contents('php://input');
         if (isset($headers['Content-Type']) && $headers['Content-Type'] === 'application/msgpack') {
