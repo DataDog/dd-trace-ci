@@ -1,0 +1,24 @@
+From 881caf8e801e9279f34a74cc7cf2e09039f3f5bb Mon Sep 17 00:00:00 2001
+From: Patch Maker <example@example.com>
+Date: Tue, 4 Aug 2020 14:10:14 +0000
+Subject: [PATCH] remove argument from time() function
+
+---
+ tests/RedisTest.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/RedisTest.php b/tests/RedisTest.php
+index 24f01d7..f1ec0fd 100644
+--- a/tests/RedisTest.php
++++ b/tests/RedisTest.php
+@@ -442,7 +442,7 @@ class Redis_Test extends TestSuite
+     public function testExpireAt() {
+         $this->redis->del('key');
+         $this->redis->set('key', 'value');
+-        $now = time(NULL);
++        $now = time();
+         $this->redis->expireAt('key', $now + 1);
+         $this->assertEquals('value', $this->redis->get('key'));
+         sleep(2);
+--
+2.20.1

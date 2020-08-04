@@ -190,3 +190,29 @@ RUN set -xe; \
     git apply *.patch
 
 CMD [ "./run.sh" ]
+
+########################################################################################################################
+## phpredis/phpredis frameworks tests
+########################################################################################################################
+FROM base AS phpredis
+ARG PHPREDIS_VERSION_TAG
+
+RUN set -xe; \
+    git clone --depth 1 --branch ${PHPREDIS_VERSION_TAG} https://github.com/phpredis/phpredis.git \
+        /home/phpredis-${PHPREDIS_VERSION_TAG};
+
+WORKDIR /home/phpredis-${PHPREDIS_VERSION_TAG}
+
+ENV DD_SERVICE_NAME=phpredis-${PHPREDIS_VERSION_TAG}
+
+# Installing the correct version of redis
+RUN pecl uninstall redis
+RUN printf 'no' | pecl install -f redis-${PHPREDIS_VERSION_TAG}
+
+# Applying patches
+ADD phpredis/${PHPREDIS_VERSION_TAG}/001_patch.patch /home/phpredis-${PHPREDIS_VERSION_TAG}/001_patch.patch
+RUN set -xe; \
+    git apply *.patch
+
+ADD phpredis/${PHPREDIS_VERSION_TAG}/run.sh ./run.sh
+CMD [ "./run.sh" ]
