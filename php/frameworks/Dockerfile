@@ -210,9 +210,10 @@ RUN pecl uninstall redis
 RUN printf 'no' | pecl install -f redis-${PHPREDIS_VERSION_TAG}
 
 # Applying patches
-ADD phpredis/${PHPREDIS_VERSION_TAG}/001_patch.patch /home/phpredis-${PHPREDIS_VERSION_TAG}/001_patch.patch
+ADD phpredis/${PHPREDIS_VERSION_TAG}/patch.patch /home/phpredis-${PHPREDIS_VERSION_TAG}/patch.patch
 RUN set -xe; \
     git apply *.patch
 
+WORKDIR /home/phpredis-${PHPREDIS_VERSION_TAG}
 ADD phpredis/${PHPREDIS_VERSION_TAG}/run.sh ./run.sh
 CMD [ "./run.sh" ]
