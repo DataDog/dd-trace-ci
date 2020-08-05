@@ -160,3 +160,27 @@ services:
     build:
       context: frameworks
       target: wordpress
+
+  framework-phpredis-3:
+    image: datadog/dd-trace-ci:php-framework-phpredis-3
+    build:
+      context: frameworks
+      target: phpredis
+      args:
+        - PHPREDIS_VERSION_TAG=3.1.6
+
+  framework-phpredis-4:
+    image: datadog/dd-trace-ci:php-framework-phpredis-4
+    build:
+      context: frameworks
+      target: phpredis
+      args:
+        - PHPREDIS_VERSION_TAG=4.3.0
+
+  framework-phpredis-5:
+    image: datadog/dd-trace-ci:php-framework-phpredis-5
+    build:
+      context: frameworks
+      target: phpredis
+      args:
+        - PHPREDIS_VERSION_TAG=5.3.1
