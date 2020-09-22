@@ -88,12 +88,26 @@ services:
       target: final
       args: { VERSION: v5_4, VARIANT: debug }
 
+  5.4-buster:
+    image: datadog/dd-trace-ci:php-5.4-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v5_4, VARIANT: vanilla }
+
   5.5-debug-buster:
     image: datadog/dd-trace-ci:php-5.5-debug-buster
     build:
       context: buster
       target: final
       args: { VERSION: v5_5, VARIANT: debug }
+
+  5.5-buster:
+    image: datadog/dd-trace-ci:php-5.5-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v5_5, VARIANT: vanilla }
 
   5.6-debug-buster:
     image: datadog/dd-trace-ci:php-5.6-debug-buster
@@ -102,12 +116,26 @@ services:
       target: final
       args: { VERSION: v5_6, VARIANT: debug }
 
+  5.6-buster:
+    image: datadog/dd-trace-ci:php-5.6-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v5_6, VARIANT: vanilla }
+
   7.0-debug-buster:
     image: datadog/dd-trace-ci:php-7.0-debug-buster
     build:
       context: buster
       target: final
       args: { VERSION: v7_0, VARIANT: debug }
+
+  7.0-buster:
+    image: datadog/dd-trace-ci:php-7.0-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_0, VARIANT: vanilla }
 
   7.1-debug-buster:
     image: datadog/dd-trace-ci:php-7.1-debug-buster
@@ -116,12 +144,26 @@ services:
       target: final
       args: { VERSION: v7_1, VARIANT: debug }
 
+  7.1-buster:
+    image: datadog/dd-trace-ci:php-7.1-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_1, VARIANT: vanilla }
+
   7.2-debug-buster:
     image: datadog/dd-trace-ci:php-7.2-debug-buster
     build:
       context: buster
       target: final
       args: { VERSION: v7_2, VARIANT: debug }
+
+  7.2-buster:
+    image: datadog/dd-trace-ci:php-7.2-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_2, VARIANT: vanilla }
 
   7.3-debug-buster:
     image: datadog/dd-trace-ci:php-7.3-debug-buster
@@ -130,12 +172,26 @@ services:
       target: final
       args: { VERSION: v7_3, VARIANT: debug }
 
+  7.3-buster:
+    image: datadog/dd-trace-ci:php-7.3-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_3, VARIANT: vanilla }
+
   7.4-debug-buster:
     image: datadog/dd-trace-ci:php-7.4-debug-buster
     build:
       context: buster
       target: final
       args: { VERSION: v7_4, VARIANT: debug }
+
+  7.4-buster:
+    image: datadog/dd-trace-ci:php-7.4-buster
+    build:
+      context: buster
+      target: final
+      args: { VERSION: v7_4, VARIANT: vanilla }
 
   7.4-debug-asan-buster:
     image: datadog/dd-trace-ci:php-7.4-debug-asan-buster
