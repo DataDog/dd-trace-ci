@@ -157,7 +157,9 @@ RUN set -eux; \
         tee -a /home/circleci/.bashrc; \
 # Handy aliases
     echo "alias ll='ls -al'" | \
-        tee -a /home/circleci/.bash_aliases;
+        tee -a /home/circleci/.bash_aliases; \
+    chown -R circleci:circleci /opt /usr/local
+
 ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D
 
 FROM basic_system as php_source_v5_3
@@ -434,8 +436,8 @@ RUN set -xe; \
     docker-php-ext-enable mongo
 
 # Composer 2.0 supports PHP 5.3+, but 2.2 is expected to be 7.1+
-# v2.1 may or may not impose version updates; is undecided
-COPY --from=composer:2.0 /usr/bin/composer /usr/local/bin/composer
+# There are still some lingering issues, so we use 1 for now
+COPY --from=composer:1 /usr/bin/composer /usr/local/bin/composer
 
 # Xdebug: PHP 5.6
 RUN set -xe; \
@@ -481,7 +483,7 @@ RUN set -xe; \
     docker-php-ext-enable ast; \
     docker-php-ext-enable sodium 2> /dev/null || true
 
-COPY --from=composer:2.0 /usr/bin/composer /usr/local/bin/composer
+COPY --from=composer:1 /usr/bin/composer /usr/local/bin/composer
 
 RUN set -xe; \
     [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] || [ -z ${PHP_VERSION##7.1} ] && exit 0 ;\
@@ -540,9 +542,6 @@ FROM final-v7_base AS v7_3-final
 FROM final-v7_base AS v7_4-final
 
 FROM ${VERSION}-final AS final
-
-# For our purposes, installing software into /opt shouldn't require root
-RUN chown -R circleci:circleci /opt
 
 ENV LSAN_OPTIONS ""
 WORKDIR /home/circleci
