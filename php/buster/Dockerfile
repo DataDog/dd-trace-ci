@@ -419,7 +419,6 @@ RUN set -eux; \
 FROM php-build AS final-v5_base
 RUN set -xe; \
     [ -z ${PHP_VERSION##7.*} ] && exit 0 ;\
-    (curl -q https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer | php -- --filename=composer --install-dir=/usr/local/bin); \
     mkdir -p /tmp/memcached; \
     cd /tmp/memcached;\
     curl -L -o memcached.tar.gz https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz; \
@@ -433,6 +432,10 @@ RUN set -xe; \
     yes 'no' | pecl install mongo; \
     docker-php-ext-enable memcached; \
     docker-php-ext-enable mongo
+
+# Composer 2.0 supports PHP 5.3+, but 2.2 is expected to be 7.1+
+# v2.1 may or may not impose version updates; is undecided
+COPY --from=composer:2.0 /usr/bin/composer /usr/local/bin/composer
 
 # Xdebug: PHP 5.6
 RUN set -xe; \
@@ -466,7 +469,6 @@ FROM php-build AS final-v7_base
 
 RUN set -xe; \
     [ -z ${PHP_VERSION##5.*} ] && exit 0 ;\
-    (curl -q https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer | php -- --filename=composer --install-dir=/usr/local/bin); \
     yes '' | pecl install apcu; \
     export EXT_DEPS="zlib1g-dev libmemcached-dev";\
     sudo apt-get update; \
@@ -478,6 +480,8 @@ RUN set -xe; \
     pecl install ast; \
     docker-php-ext-enable ast; \
     docker-php-ext-enable sodium 2> /dev/null || true
+
+COPY --from=composer:2.0 /usr/bin/composer /usr/local/bin/composer
 
 RUN set -xe; \
     [ -z ${PHP_VERSION##5.*} ] || [ -z ${PHP_VERSION##7.0} ] || [ -z ${PHP_VERSION##7.1} ] && exit 0 ;\
@@ -536,6 +540,9 @@ FROM final-v7_base AS v7_3-final
 FROM final-v7_base AS v7_4-final
 
 FROM ${VERSION}-final AS final
+
+# For our purposes, installing software into /opt shouldn't require root
+RUN chown -R circleci:circleci /opt
 
 ENV LSAN_OPTIONS ""
 WORKDIR /home/circleci
