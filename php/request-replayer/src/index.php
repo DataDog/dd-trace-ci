@@ -9,7 +9,8 @@ if ('cli-server' !== PHP_SAPI) {
     exit;
 }
 
-define('REQUEST_LOG_FILE', sys_get_temp_dir() . '/dump.json');
+define('REQUEST_LATEST_DUMP_FILE', getenv('REQUEST_LATEST_DUMP_FILE') ?: (sys_get_temp_dir() . '/dump.json'));
+define('REQUEST_LOG_FILE', getenv('REQUEST_LOG_FILE') ?: (sys_get_temp_dir() . '/requests-log.txt'));
 
 function logRequest($message, $data = '')
 {
@@ -17,26 +18,28 @@ function logRequest($message, $data = '')
         $message .= ":\n" . $data;
     }
     error_log(
-        sprintf('[%s | %s] %s', $_SERVER['REQUEST_URI'], REQUEST_LOG_FILE, $message)
+        sprintf('[%s | %s] %s', $_SERVER['REQUEST_URI'], REQUEST_LATEST_DUMP_FILE, $message)
     );
 }
 
 switch ($_SERVER['REQUEST_URI']) {
     case '/replay':
-        if (!file_exists(REQUEST_LOG_FILE)) {
+        if (!file_exists(REQUEST_LATEST_DUMP_FILE)) {
             logRequest('Cannot replay last request; request log does not exist');
             break;
         }
-        $request = file_get_contents(REQUEST_LOG_FILE);
+        $request = file_get_contents(REQUEST_LATEST_DUMP_FILE);
         echo $request;
+        unlink(REQUEST_LATEST_DUMP_FILE);
         unlink(REQUEST_LOG_FILE);
         logRequest('Returned last request and deleted request log', $request);
         break;
     case '/clear-dumped-data':
-        if (!file_exists(REQUEST_LOG_FILE)) {
+        if (!file_exists(REQUEST_LATEST_DUMP_FILE)) {
             logRequest('Cannot delete request log; request log does not exist');
             break;
         }
+        unlink(REQUEST_LATEST_DUMP_FILE);
         unlink(REQUEST_LOG_FILE);
         logRequest('Deleted request log');
         break;
@@ -58,7 +61,8 @@ switch ($_SERVER['REQUEST_URI']) {
             'headers' => $headers,
             'body' => $body,
         ]);
-        file_put_contents(REQUEST_LOG_FILE, $value);
+        file_put_contents(REQUEST_LATEST_DUMP_FILE, $value);
+        file_put_contents(REQUEST_LOG_FILE, $value . "\n", FILE_APPEND);
         logRequest('Logged new request', $value);
         break;
 }
