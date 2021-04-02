@@ -57,7 +57,7 @@ switch ($_SERVER['REQUEST_URI']) {
             $body = $raw;
         }
         if (file_exists(REQUEST_LATEST_DUMP_FILE)) {
-            $tracesStack = json_decode(file_get_contents(REQUEST_LATEST_DUMP_FILE));
+            $tracesStack = json_decode(file_get_contents(REQUEST_LATEST_DUMP_FILE), true);
         } else {
             $tracesStack = [];
         }
