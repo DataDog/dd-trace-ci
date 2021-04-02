@@ -382,6 +382,7 @@ RUN set -eux; \
         --enable-cgi \
         --with-fpm-user=www-data \
         --with-fpm-group=www-data \
+        --enable-pcntl \
         --with-pear \
         --with-pdo-pgsql \
         --with-pdo-mysql \
