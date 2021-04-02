@@ -56,13 +56,23 @@ switch ($_SERVER['REQUEST_URI']) {
         } else {
             $body = $raw;
         }
-        $value = json_encode([
+        if (file_exists(REQUEST_LATEST_DUMP_FILE)) {
+            $tracesStack = json_decode(file_get_contents(REQUEST_LATEST_DUMP_FILE));
+        } else {
+            $tracesStack = [];
+        }
+
+        $newIncomingRequest = [
             'uri' => $_SERVER['REQUEST_URI'],
             'headers' => $headers,
             'body' => $body,
-        ]);
-        file_put_contents(REQUEST_LATEST_DUMP_FILE, $value);
-        file_put_contents(REQUEST_LOG_FILE, $value . "\n", FILE_APPEND);
-        logRequest('Logged new request', $value);
+        ];
+
+        $tracesStack[] = $newIncomingRequest;
+        $newIncomingRequestJson = json_encode($newIncomingRequest);
+
+        file_put_contents(REQUEST_LATEST_DUMP_FILE, json_encode($tracesStack));
+        file_put_contents(REQUEST_LOG_FILE, $newIncomingRequestJson . "\n", FILE_APPEND);
+        logRequest('Logged new request', $newIncomingRequestJson);
         break;
 }
