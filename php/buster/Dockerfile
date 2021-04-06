@@ -363,7 +363,9 @@ RUN set -eux; \
         \
 # https://github.com/docker-library/php/issues/439
         --with-mhash \
-        --enable-embed \
+# Disabling embed SAPI until we find a strategy to build both the "embed" + "apache2handler":
+# Error raised: "You've configured multiple SAPIs to be build. You can build only one SAPI module plus CGI, CLI and FPM binaries at the same time."
+        # --enable-embed \
         \
 # --enable-ftp is included here because ftp_ssl_connect() needs ftp to be compiled statically (see https://github.com/docker-library/php/issues/236)
         --enable-ftp \
@@ -380,6 +382,7 @@ RUN set -eux; \
         --enable-opcache \
         --enable-fpm \
         --enable-cgi \
+        --enable-pcntl \
         --with-fpm-user=www-data \
         --with-fpm-group=www-data \
         --with-pear \
